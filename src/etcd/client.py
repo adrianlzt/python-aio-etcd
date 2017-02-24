@@ -846,13 +846,26 @@ class Client(object):
 
         url = self._base_uri + path
 
-        return self._client.request(
-            method,
-            url,
-            params=params,
-            auth=self._get_auth(),
-            allow_redirects=self.allow_redirect,
-            )
+        if (method == self._MGET) or (method == self._MDELETE):
+            return self._client.request(
+                method,
+                url,
+                params=params,
+                auth=self._get_auth(),
+                allow_redirects=self.allow_redirect,
+                )
+
+        elif (method == self._MPUT) or (method == self._MPOST):
+            return self._client.request(
+                method,
+                url,
+                data=params,
+                auth=self._get_auth(),
+                allow_redirects=self.allow_redirect,
+                )
+        else:
+            raise etcd.EtcdException(
+                'HTTP method {} not supported'.format(method))
 
     @_wrap_request
     def api_execute_json(self, path, method, params=None):
