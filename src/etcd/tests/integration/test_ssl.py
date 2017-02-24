@@ -18,7 +18,6 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
 
     @classmethod
     def setUpClass(cls):
-        program = cls._get_exe()
         cls.directory = tempfile.mkdtemp(prefix='python-aio_etcd')
 
         cls.ca_cert_path = os.path.join(cls.directory, 'ca.crt')
@@ -41,8 +40,7 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
 
         cls.processHelper = helpers.EtcdProcessHelper(
             cls.directory,
-            proc_name=program,
-            port_range_start=6001,
+            port_range_start=6281,
             internal_port_range_start=8001,
             tls=True
         )
@@ -57,7 +55,7 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
     def test_get_set_unauthenticated(loop, self):
         """ INTEGRATION: set/get a new value unauthenticated (http->https) """
 
-        client = aio_etcd.Client(port=6001, loop=loop)
+        client = aio_etcd.Client(port=6281, loop=loop)
 
         # Since python 3 raises a MaxRetryError here, this gets caught in
         # different code blocks in python 2 and python 3, thus messages are
@@ -78,7 +76,7 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
     def test_get_set_unauthenticated_missing_ca(loop, self):
         """ INTEGRATION: try unauthenticated w/out validation (https->https)"""
         # This doesn't work for now and will need further inspection
-        client = aio_etcd.Client(protocol='https', port=6001, ssl_verify=ssl.CERT_NONE, loop=loop)
+        client = aio_etcd.Client(protocol='https', port=6281, ssl_verify=ssl.CERT_NONE, loop=loop)
         set_result = yield from client.set('/test_set', 'test-key')
         get_result = yield from client.get('/test_set')
 
@@ -86,7 +84,7 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
     def test_get_set_unauthenticated_with_ca(loop, self):
         """ INTEGRATION: try unauthenticated with validation (https->https)"""
         client = aio_etcd.Client(
-            protocol='https', port=6001, ca_cert=self.ca2_cert_path, loop=loop)
+            protocol='https', port=6281, ca_cert=self.ca2_cert_path, loop=loop)
 
         loop = asyncio.get_event_loop()
         try:
@@ -105,7 +103,7 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
         """ INTEGRATION: set/get a new value authenticated """
 
         client = aio_etcd.Client(
-            port=6001, protocol='https', ca_cert=self.ca_cert_path, loop=loop)
+            port=6281, protocol='https', ca_cert=self.ca_cert_path, loop=loop)
 
         set_result = yield from client.set('/test_set', 'test-key')
         get_result = yield from client.get('/test_set')
@@ -115,7 +113,6 @@ class TestClientAuthenticatedAccess(test_simple.EtcdIntegrationTest):
 
     @classmethod
     def setUpClass(cls):
-        program = cls._get_exe()
         cls.directory = tempfile.mkdtemp(prefix='python-aio_etcd')
 
         cls.ca_cert_path = os.path.join(cls.directory, 'ca.crt')
@@ -143,8 +140,7 @@ class TestClientAuthenticatedAccess(test_simple.EtcdIntegrationTest):
 
         cls.processHelper = helpers.EtcdProcessHelper(
             cls.directory,
-            proc_name=program,
-            port_range_start=6001,
+            port_range_start=6281,
             internal_port_range_start=8001,
             tls=True
         )
@@ -167,7 +163,7 @@ class TestClientAuthenticatedAccess(test_simple.EtcdIntegrationTest):
     def test_get_set_unauthenticated(loop, self):
         """ INTEGRATION: set/get a new value unauthenticated (http->https) """
 
-        client = aio_etcd.Client(port=6001, loop=loop)
+        client = aio_etcd.Client(port=6281, loop=loop)
 
         # See above for the reason of this change
         try:
@@ -189,7 +185,7 @@ class TestClientAuthenticatedAccess(test_simple.EtcdIntegrationTest):
         # doesn't fail
 
         client = aio_etcd.Client(
-            port=6001,
+            port=6281,
             protocol='https',
             cert=self.client_all_cert,
             ca_cert=self.ca_cert_path,

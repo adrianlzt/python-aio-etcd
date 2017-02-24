@@ -12,14 +12,14 @@ class TestEtcdAuthBase(EtcdIntegrationTest):
     def setUp(self):
         # Sets up the root user, toggles auth
         loop = asyncio.get_event_loop()
-        self.client = etcd.Client(port=6001, loop=loop)
+        self.client = etcd.Client(port=6281, loop=loop)
 
         u = auth.EtcdUser(self.client, 'root')
         u.password = 'testpass'
         loop.run_until_complete(u.write())
-        self.client = etcd.Client(port=6001, username='root',
+        self.client = etcd.Client(port=6281, username='root',
                                 password='testpass', loop=loop)
-        self.unauth_client = etcd.Client(port=6001, loop=loop)
+        self.unauth_client = etcd.Client(port=6281, loop=loop)
         a = auth.Auth(self.client)
         loop.run_until_complete(a.set_active(True))
 
@@ -44,7 +44,16 @@ class EtcdUserTest(TestEtcdAuthBase):
     @helpers.run_async
     def test_names(loop,self):
         u = auth.EtcdUser(self.client, 'test_user')
-        self.assertEquals((yield from u.get_names()), ['root'])
+        self.assertEquals((yield from u.get_names()),[
+            {
+                'user': 'root',
+                'roles': [{
+                    'role': 'root', 'permissions': {
+                        'kv': {'read': ['/*'], 'write': ['/*']}
+                    }
+                }]
+            }
+        ])
 
     @helpers.run_async
     def test_read(loop,self):
@@ -95,7 +104,7 @@ class EtcdUserTest(TestEtcdAuthBase):
         yield from u.read()
         # Verify we can log in as this user and access the auth (it has the
         # root role)
-        cl = etcd.Client(port=6001, username='test_user',
+        cl = etcd.Client(port=6281, username='test_user',
                          password='123456')
         ul = auth.EtcdUser(cl, 'root')
         try:
@@ -105,14 +114,6 @@ class EtcdUserTest(TestEtcdAuthBase):
 
         self.assertEquals(u.name, "test_user")
         self.assertEquals(u.roles, set(['guest', 'root']))
-        # set roles as a list, it works!
-        u.roles = ['guest', 'test_group']
-        try:
-            yield from u.write()
-        except:
-            self.fail("updating a user you previously created fails")
-        yield from u.read()
-        self.assertIn('test_group', u.roles)
 
         # Unauthorized access is properly handled
         ua = auth.EtcdUser(self.unauth_client, 'test_user')
@@ -137,7 +138,22 @@ class EtcdRoleTest(TestEtcdAuthBase):
     @helpers.run_async
     def test_names(loop,self):
         r = auth.EtcdRole(self.client, 'guest')
-        self.assertListEqual((yield from r.get_names()), [u'guest', u'root'])
+        x = yield from r.get_names()
+        print(x)
+        self.assertListEqual((yield from r.get_names()), [
+            {
+                'role': 'guest',
+                'permissions': {
+                    'kv': {'read': ['/*'], 'write': ['/*']}
+                }
+            },
+            {
+                'role': 'root',
+                'permissions': {
+                    'kv': {'read': ['/*'], 'write': ['/*']}
+                }
+            }
+        ])
 
     @helpers.run_async
     def test_read(loop,self):

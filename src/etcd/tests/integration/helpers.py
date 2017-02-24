@@ -28,7 +28,7 @@ class EtcdProcessHelper(object):
     def __init__(
             self,
             base_directory,
-            proc_name='aio_etcd',
+            proc_name='etcd',
             port_range_start=4001,
             internal_port_range_start=7001,
             cluster=False,

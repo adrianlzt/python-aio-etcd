@@ -130,7 +130,13 @@ class EtcdUser(EtcdAuthBase):
 
     @roles.setter
     def roles(self, val):
-        self._roles = set(val)
+        def extract_roles(r):
+            if isinstance(r, dict):
+                return r.get("role")
+            else:
+                return r
+
+        self._roles = set(set(map(lambda x: extract_roles(x), val)))
 
     @property
     def password(self):
