@@ -12,7 +12,7 @@ echo "Using ETCD version $ETCD_VERSION"
 git clone https://github.com/coreos/etcd.git
 cd etcd
 git checkout $ETCD_VERSION
-BINDIR=/usr/bin ./build
+./build
 
 
 : ${TRAVIS:?"This is not a Travis build. All Done"}
