@@ -18,6 +18,7 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
 
     @classmethod
     def setUpClass(cls):
+        program = cls._get_exe()
         cls.directory = tempfile.mkdtemp(prefix='python-aio_etcd')
 
         cls.ca_cert_path = os.path.join(cls.directory, 'ca.crt')
@@ -40,6 +41,7 @@ class TestEncryptedAccess(test_simple.EtcdIntegrationTest):
 
         cls.processHelper = helpers.EtcdProcessHelper(
             cls.directory,
+            proc_name=program,
             port_range_start=6281,
             internal_port_range_start=8001,
             tls=True
@@ -113,6 +115,7 @@ class TestClientAuthenticatedAccess(test_simple.EtcdIntegrationTest):
 
     @classmethod
     def setUpClass(cls):
+        program = cls._get_exe()
         cls.directory = tempfile.mkdtemp(prefix='python-aio_etcd')
 
         cls.ca_cert_path = os.path.join(cls.directory, 'ca.crt')
@@ -140,6 +143,7 @@ class TestClientAuthenticatedAccess(test_simple.EtcdIntegrationTest):
 
         cls.processHelper = helpers.EtcdProcessHelper(
             cls.directory,
+            proc_name=program,
             port_range_start=6281,
             internal_port_range_start=8001,
             tls=True

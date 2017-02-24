@@ -17,9 +17,11 @@ class EtcdIntegrationTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        program = cls._get_exe()
         cls.directory = tempfile.mkdtemp(prefix='python-aio_etcd')
         cls.processHelper = helpers.EtcdProcessHelper(
             cls.directory,
+            proc_name=program,
             port_range_start=6281,
             internal_port_range_start=8001)
         cls.processHelper.run(number=cls.cl_size)
@@ -28,6 +30,29 @@ class EtcdIntegrationTest(unittest.TestCase):
     def tearDownClass(cls):
         cls.processHelper.stop()
         shutil.rmtree(cls.directory)
+
+    @classmethod
+    def _is_exe(cls, fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    @classmethod
+    def _get_exe(cls):
+        PROGRAM = 'etcd'
+
+        program_path = None
+
+        for path in os.environ["PATH"].split(os.pathsep):
+            path = path.strip('"')
+            exe_file = os.path.join(path, PROGRAM)
+            if cls._is_exe(exe_file):
+                program_path = exe_file
+                break
+
+        if not program_path:
+            raise Exception('aio_etcd not in path!!')
+
+        return program_path
+
 
 class TestSimple(EtcdIntegrationTest):
 
@@ -42,7 +67,7 @@ class TestSimple(EtcdIntegrationTest):
         """ INTEGRATION: retrieve leader """
         client = aio_etcd.Client(port=6281, loop=loop)
         self.assertIn((yield from client.leader())['clientURLs'][0],
-            ['http://127.0.0.1:6281','http://127.0.0.1:6002','http://127.0.0.1:6003'])
+            ['http://127.0.0.1:6281','http://127.0.0.1:6282','http://127.0.0.1:6283'])
 
     @helpers.run_async
     def test_get_set_delete(loop, self):
@@ -175,10 +200,12 @@ class TestErrors(EtcdIntegrationTest):
 class TestClusterFunctions(EtcdIntegrationTest):
     @classmethod
     def setUpClass(cls):
+        program = cls._get_exe()
         cls.directory = tempfile.mkdtemp(prefix='python-aio_etcd')
 
         cls.processHelper = helpers.EtcdProcessHelper(
             cls.directory,
+            proc_name=program,
             port_range_start=6281,
             internal_port_range_start=8001,
             cluster=True)
